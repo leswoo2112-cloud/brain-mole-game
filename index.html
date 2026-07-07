@@ -3,18 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>기억 두더지 게임</title>
+  <title>브레인 두더지 게임</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🧠 기억 두더지 게임</h1>
+  <h1>🧠 브레인 두더지 게임</h1>
 
-  <div class="info">
-    <h2>점수: <span id="score">0</span></h2>
-    <h2>시간: <span id="time">30</span>초</h2>
+  <div class="panel">
+    <div>점수: <span id="score">0</span></div>
+    <div>시간: <span id="time">30</span>초</div>
+    <div>최고점수: <span id="best">0</span></div>
   </div>
 
+  <div class="selects">
+    <select id="mode">
+      <option value="normal">일반 모드</option>
+      <option value="fast">빠른 모드</option>
+      <option value="brain">치매 예방 모드</option>
+    </select>
+
+    <select id="duration">
+      <option value="30">30초</option>
+      <option value="90">1분 30초</option>
+    </select>
+  </div>
+
+  <p id="mission">두더지가 나오면 눌러용!</p>
+
   <button id="startBtn">게임 시작</button>
+
+  <div id="countdown"></div>
 
   <div class="game">
     <div class="hole"></div>
