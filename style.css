@@ -1,0 +1,52 @@
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: #eef8ff;
+  text-align: center;
+}
+
+h1 {
+  color: #2c3e50;
+}
+
+.info {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin: 20px;
+}
+
+button {
+  padding: 12px 25px;
+  font-size: 20px;
+  border: none;
+  border-radius: 10px;
+  background: #3498db;
+  color: white;
+}
+
+.game {
+  width: 360px;
+  margin: 30px auto;
+  display: grid;
+  grid-template-columns: repeat(3, 110px);
+  gap: 15px;
+}
+
+.hole {
+  width: 110px;
+  height: 110px;
+  background: #8b5a2b;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+}
+
+.hole.mole::after {
+  content: "🐹";
+  position: absolute;
+  font-size: 70px;
+  left: 18px;
+  top: 15px;
+}
