@@ -327,3 +327,13 @@ resetRankBtn.addEventListener("click", async () => {
     console.error(error);
   }
 });
+const isAdmin = new URLSearchParams(location.search).get("admin") === "1234";
+const rankingBox = document.querySelector(".rankingBox");
+
+if (!isAdmin && rankingBox) {
+  rankingBox.style.display = "none";
+}
+
+if (!isAdmin && resetRankBtn) {
+  resetRankBtn.style.display = "none";
+}
