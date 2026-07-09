@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>브레인 두더지 랭킹 게임</title>
+  <title>브레인 두더지 게임</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🧠 브레인 두더지 랭킹 게임</h1>
+  <h1>🧠 브레인 두더지 게임</h1>
 
   <div class="nameBox">
     <input id="playerName" placeholder="이름 입력">
@@ -20,7 +20,7 @@
     <div>시간: <span id="time">30</span>초</div>
   </div>
 
-  <p id="mission">30초 일반 모드! 두더지를 눌러 점수를 올려용!</p>
+  <p id="mission">30초 동안 두더지를 눌러 점수를 올려용!</p>
   <p id="eventText"></p>
 
   <button id="startBtn">게임 시작</button>
@@ -37,15 +37,6 @@
     <div class="hole"></div>
     <div class="hole"></div>
   </div>
-
-  <section class="rankingBox">
-    <h2>🏆 실시간 랭킹</h2>
-    <div id="top3"></div>
-
-<button id="resetRankBtn">🗑️ 랭킹 초기화</button>
-
-<ol id="rankingList"></ol>
-  </section>
 
   <script type="module" src="script.js"></script>
 </body>
