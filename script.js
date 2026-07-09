@@ -36,6 +36,7 @@ const eventText = document.getElementById("eventText");
 const playerNameInput = document.getElementById("playerName");
 const saveNameBtn = document.getElementById("saveNameBtn");
 const currentPlayerText = document.getElementById("currentPlayer");
+
 const top3 = document.getElementById("top3");
 const rankingList = document.getElementById("rankingList");
 const resetRankBtn = document.getElementById("resetRankBtn");
@@ -49,9 +50,9 @@ let speedTimer;
 let currentSpeed = 800;
 let playerName = localStorage.getItem("playerName") || "";
 
-if (playerName) {
-  currentPlayerText.textContent = playerName;
+if (playerNameInput && currentPlayerText && playerName) {
   playerNameInput.value = playerName;
+  currentPlayerText.textContent = playerName;
 }
 
 function clearHoles() {
@@ -61,7 +62,10 @@ function clearHoles() {
 }
 
 function showEvent(text) {
+  if (!eventText) return;
+
   eventText.textContent = text;
+
   setTimeout(() => {
     eventText.textContent = "";
   }, 1000);
@@ -72,6 +76,7 @@ function randomIndexes(count) {
 
   while (indexes.length < count) {
     const random = Math.floor(Math.random() * holes.length);
+
     if (!indexes.includes(random)) {
       indexes.push(random);
     }
@@ -137,7 +142,6 @@ function startCountdown() {
 
   let count = 3;
   countdown.textContent = count;
-
   startBtn.disabled = true;
 
   const countTimer = setInterval(() => {
@@ -186,16 +190,11 @@ function startGame() {
 }
 
 async function saveScore() {
-  try {
-    await addDoc(collection(db, "rankings"), {
-      name: playerName,
-      score: score,
-      createdAt: serverTimestamp()
-    });
-  } catch (error) {
-    alert("점수 저장 실패! 인터넷/Firebase 설정 확인해줘용.");
-    console.error(error);
-  }
+  await addDoc(collection(db, "rankings"), {
+    name: playerName,
+    score: score,
+    createdAt: serverTimestamp()
+  });
 }
 
 async function endGame() {
@@ -207,58 +206,78 @@ async function endGame() {
   clearHoles();
 
   startBtn.disabled = false;
-  eventText.textContent = "";
 
-  await saveScore();
-
-  alert("게임 종료!\n이름: " + playerName + "\n점수: " + score + "\n랭킹에 저장됐어용!");
-}
-
-holes.forEach(hole => {
-  hole.addEventListener("click", () => {
-    if (!playing) return;
-
-    hole.classList.add("hit");
-    setTimeout(() => {
-      hole.classList.remove("hit");
-    }, 100);
-
-    if (hole.classList.contains("fake")) {
-      score -= 2;
-      if (score < 0) score = 0;
-      showEvent("💣 가짜! -2점");
-      clearHoles();
-    } else if (hole.classList.contains("mole")) {
-      score++;
-      hole.className = "hole";
-    }
-
-    scoreText.textContent = score;
-
-    if (navigator.vibrate) {
-      navigator.vibrate(40);
-    }
-  });
-});
-
-saveNameBtn.addEventListener("click", () => {
-  const name = playerNameInput.value.trim();
-
-  if (!name) {
-    alert("이름을 입력해줘용!");
-    return;
+  if (eventText) {
+    eventText.textContent = "";
   }
 
-  playerName = name;
-  localStorage.setItem("playerName", playerName);
-  currentPlayerText.textContent = playerName;
+  try {
+    await saveScore();
+    alert("게임 종료!\n이름: " + playerName + "\n점수: " + score + "\n랭킹에 저장됐어용!");
+  } catch (error) {
+    alert("점수 저장 실패! 인터넷/Firebase 설정 확인해줘용.");
+    console.error(error);
+  }
+}
 
-  alert(playerName + " 참가 완료!");
-});
+if (holes.length > 0) {
+  holes.forEach(hole => {
+    hole.addEventListener("click", () => {
+      if (!playing) return;
 
-startBtn.addEventListener("click", startCountdown);
+      hole.classList.add("hit");
+
+      setTimeout(() => {
+        hole.classList.remove("hit");
+      }, 100);
+
+      if (hole.classList.contains("fake")) {
+        score -= 2;
+
+        if (score < 0) {
+          score = 0;
+        }
+
+        showEvent("💣 가짜! -2점");
+        clearHoles();
+      } else if (hole.classList.contains("mole")) {
+        score++;
+        hole.className = "hole";
+      }
+
+      scoreText.textContent = score;
+
+      if (navigator.vibrate) {
+        navigator.vibrate(40);
+      }
+    });
+  });
+}
+
+if (saveNameBtn) {
+  saveNameBtn.addEventListener("click", () => {
+    const name = playerNameInput.value.trim();
+
+    if (!name) {
+      alert("이름을 입력해줘용!");
+      return;
+    }
+
+    playerName = name;
+    localStorage.setItem("playerName", playerName);
+    currentPlayerText.textContent = playerName;
+
+    alert(playerName + " 참가 완료!");
+  });
+}
+
+if (startBtn) {
+  startBtn.addEventListener("click", startCountdown);
+}
 
 function renderRanking(players) {
+  if (!top3 || !rankingList) return;
+
   top3.innerHTML = "";
   rankingList.innerHTML = "";
 
@@ -267,11 +286,13 @@ function renderRanking(players) {
   players.slice(0, 3).forEach((player, index) => {
     const card = document.createElement("div");
     card.className = "rankCard rank" + (index + 1);
+
     card.innerHTML = `
       <div>${medals[index]} ${index + 1}등</div>
       <div>${player.name}</div>
       <div>${player.score}점</div>
     `;
+
     top3.appendChild(card);
   });
 
@@ -282,58 +303,51 @@ function renderRanking(players) {
   });
 }
 
-const rankingQuery = query(
-  collection(db, "rankings"),
-  orderBy("score", "desc"),
-  limit(130)
-);
+if (top3 && rankingList) {
+  const rankingQuery = query(
+    collection(db, "rankings"),
+    orderBy("score", "desc"),
+    limit(130)
+  );
 
-onSnapshot(rankingQuery, snapshot => {
-  const players = [];
+  onSnapshot(rankingQuery, snapshot => {
+    const players = [];
 
-  snapshot.forEach(doc => {
-    players.push(doc.data());
-  });
-
-  renderRanking(players);
-});
-
-resetRankBtn.addEventListener("click", async () => {
-  const password = prompt("랭킹 초기화 비밀번호를 입력해줘용!");
-
-  if (password !== "1234") {
-    alert("비밀번호가 틀렸어용!");
-    return;
-  }
-
-  const ok = confirm("정말 랭킹을 전부 초기화할까요?");
-
-  if (!ok) return;
-
-  try {
-    const snapshot = await getDocs(collection(db, "rankings"));
-
-    const deleteList = [];
-
-    snapshot.forEach(docItem => {
-      deleteList.push(deleteDoc(docItem.ref));
+    snapshot.forEach(doc => {
+      players.push(doc.data());
     });
 
-    await Promise.all(deleteList);
-
-    alert("랭킹 초기화 완료!");
-  } catch (error) {
-    alert("랭킹 초기화 실패! Firebase 설정을 확인해줘용.");
-    console.error(error);
-  }
-});
-const isAdmin = new URLSearchParams(location.search).get("admin") === "1234";
-const rankingBox = document.querySelector(".rankingBox");
-
-if (!isAdmin && rankingBox) {
-  rankingBox.style.display = "none";
+    renderRanking(players);
+  });
 }
 
-if (!isAdmin && resetRankBtn) {
-  resetRankBtn.style.display = "none";
+if (resetRankBtn) {
+  resetRankBtn.addEventListener("click", async () => {
+    const password = prompt("랭킹 초기화 비밀번호를 입력해줘용!");
+
+    if (password !== "1234") {
+      alert("비밀번호가 틀렸어용!");
+      return;
+    }
+
+    const ok = confirm("정말 랭킹을 전부 초기화할까요?");
+
+    if (!ok) return;
+
+    try {
+      const snapshot = await getDocs(collection(db, "rankings"));
+      const deleteList = [];
+
+      snapshot.forEach(docItem => {
+        deleteList.push(deleteDoc(docItem.ref));
+      });
+
+      await Promise.all(deleteList);
+
+      alert("랭킹 초기화 완료!");
+    } catch (error) {
+      alert("랭킹 초기화 실패! Firebase 설정 확인해줘용.");
+      console.error(error);
+    }
+  });
 }
