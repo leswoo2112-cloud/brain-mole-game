@@ -3,33 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>브레인 두더지 게임 V3</title>
+  <title>브레인 두더지 랭킹 게임</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🧠 브레인 두더지 게임 V3</h1>
+  <h1>🧠 브레인 두더지 랭킹 게임</h1>
+
+  <div class="nameBox">
+    <input id="playerName" placeholder="이름 입력">
+    <button id="saveNameBtn">참가</button>
+  </div>
 
   <div class="panel">
+    <div>👤 참가자: <span id="currentPlayer">없음</span></div>
     <div>점수: <span id="score">0</span></div>
     <div>시간: <span id="time">30</span>초</div>
-    <div>최고점수: <span id="best">0</span></div>
   </div>
 
-  <div class="selects">
-    <select id="mode">
-      <option value="normal">일반 모드</option>
-      <option value="fast">빠른 모드</option>
-      <option value="brain">치매 예방 모드</option>
-    </select>
-
-    <select id="duration">
-      <option value="30">30초</option>
-      <option value="90">1분 30초</option>
-    </select>
-  </div>
-
-  <p id="mission">두더지를 눌러용!</p>
-  <p id="eventText">이벤트 대기중</p>
+  <p id="mission">30초 일반 모드! 두더지를 눌러 점수를 올려용!</p>
+  <p id="eventText"></p>
 
   <button id="startBtn">게임 시작</button>
   <div id="countdown"></div>
@@ -46,6 +38,12 @@
     <div class="hole"></div>
   </div>
 
-  <script src="script.js"></script>
+  <section class="rankingBox">
+    <h2>🏆 실시간 랭킹</h2>
+    <div id="top3"></div>
+    <ol id="rankingList"></ol>
+  </section>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>
