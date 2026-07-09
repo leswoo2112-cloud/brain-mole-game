@@ -18,6 +18,28 @@ h1 {
   font-size: 34px;
 }
 
+.nameBox {
+  margin: 15px auto;
+}
+
+.nameBox input {
+  padding: 13px;
+  font-size: 20px;
+  border-radius: 14px;
+  border: 2px solid #3498db;
+  width: 180px;
+}
+
+.nameBox button {
+  padding: 13px 20px;
+  font-size: 20px;
+  border-radius: 14px;
+  border: none;
+  background: #2ecc71;
+  color: white;
+  font-weight: bold;
+}
+
 .panel {
   display: flex;
   justify-content: center;
@@ -33,13 +55,6 @@ h1 {
   padding: 12px 18px;
   border-radius: 15px;
   box-shadow: 0 4px 12px #0002;
-}
-
-select {
-  font-size: 18px;
-  padding: 10px;
-  border-radius: 12px;
-  margin: 5px;
 }
 
 #mission {
@@ -109,24 +124,63 @@ button:disabled {
   top: 18px;
 }
 
-.hole.red::after {
-  content: "🔴";
-  position: absolute;
-  font-size: 70px;
-  left: 20px;
-  top: 18px;
-}
-
-.hole.gray::after {
-  content: "⚪";
-  position: absolute;
-  font-size: 70px;
-  left: 20px;
-  top: 18px;
-}
-
 .hit {
   transform: scale(0.92);
+}
+
+.rankingBox {
+  max-width: 720px;
+  margin: 30px auto;
+  background: white;
+  border-radius: 22px;
+  padding: 20px;
+  box-shadow: 0 8px 25px #0002;
+}
+
+.rankingBox h2 {
+  margin-top: 0;
+}
+
+#top3 {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+
+.rankCard {
+  background: #f7f7f7;
+  border-radius: 18px;
+  padding: 14px 18px;
+  min-width: 150px;
+  font-size: 20px;
+  font-weight: bold;
+  box-shadow: 0 4px 12px #0002;
+}
+
+.rank1 {
+  background: #fff3b0;
+}
+
+.rank2 {
+  background: #e9ecef;
+}
+
+.rank3 {
+  background: #ffd6a5;
+}
+
+#rankingList {
+  text-align: left;
+  font-size: 20px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+#rankingList li {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
 }
 
 @media (max-width: 430px) {
