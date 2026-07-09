@@ -3,8 +3,15 @@ body {
   padding: 20px;
   font-family: Arial, sans-serif;
   text-align: center;
-  background: linear-gradient(135deg, #dff6ff, #f7edff);
+  background: linear-gradient(135deg, #dff6ff, #fff0f7, #e8fff1);
+  background-size: 300% 300%;
+  animation: bgMove 8s infinite alternate;
   color: #222;
+}
+
+@keyframes bgMove {
+  from { background-position: left; }
+  to { background-position: right; }
 }
 
 h1 {
@@ -14,10 +21,10 @@ h1 {
 .panel {
   display: flex;
   justify-content: center;
-  gap: 18px;
+  gap: 15px;
   flex-wrap: wrap;
   margin: 15px auto;
-  font-size: 22px;
+  font-size: 21px;
   font-weight: bold;
 }
 
@@ -26,10 +33,6 @@ h1 {
   padding: 12px 18px;
   border-radius: 15px;
   box-shadow: 0 4px 12px #0002;
-}
-
-.selects {
-  margin: 15px;
 }
 
 select {
@@ -42,6 +45,13 @@ select {
 #mission {
   font-size: 20px;
   font-weight: bold;
+}
+
+#eventText {
+  font-size: 22px;
+  font-weight: bold;
+  color: #e74c3c;
+  height: 30px;
 }
 
 button {
@@ -89,6 +99,14 @@ button:disabled {
   font-size: 70px;
   left: 18px;
   top: 14px;
+}
+
+.hole.fake::after {
+  content: "💣";
+  position: absolute;
+  font-size: 65px;
+  left: 22px;
+  top: 18px;
 }
 
 .hole.red::after {
