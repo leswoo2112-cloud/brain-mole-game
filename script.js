@@ -1,24 +1,55 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDB-qCvq7eCwjSFH5Vln9bGzOENwii_sis",
+  authDomain: "brain-mole-ranking.firebaseapp.com",
+  projectId: "brain-mole-ranking",
+  storageBucket: "brain-mole-ranking.firebasestorage.app",
+  messagingSenderId: "882485062214",
+  appId: "1:882485062214:web:24cfe6aa97da8ec9c13847",
+  measurementId: "G-HJ8LH8QH6T"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const holes = document.querySelectorAll(".hole");
 const scoreText = document.getElementById("score");
 const timeText = document.getElementById("time");
-const bestText = document.getElementById("best");
 const startBtn = document.getElementById("startBtn");
-const modeSelect = document.getElementById("mode");
-const durationSelect = document.getElementById("duration");
 const mission = document.getElementById("mission");
 const countdown = document.getElementById("countdown");
 const eventText = document.getElementById("eventText");
+
+const playerNameInput = document.getElementById("playerName");
+const saveNameBtn = document.getElementById("saveNameBtn");
+const currentPlayerText = document.getElementById("currentPlayer");
+const top3 = document.getElementById("top3");
+const rankingList = document.getElementById("rankingList");
 
 let score = 0;
 let time = 30;
 let playing = false;
 let moleTimer;
 let gameTimer;
-let currentMode = "normal";
+let speedTimer;
 let currentSpeed = 800;
+let playerName = localStorage.getItem("playerName") || "";
 
-let bestScore = localStorage.getItem("moleBestScore") || 0;
-bestText.textContent = bestScore;
+if (playerName) {
+  currentPlayerText.textContent = playerName;
+  playerNameInput.value = playerName;
+}
 
 function clearHoles() {
   holes.forEach(hole => {
@@ -30,7 +61,7 @@ function showEvent(text) {
   eventText.textContent = text;
   setTimeout(() => {
     eventText.textContent = "";
-  }, 1200);
+  }, 1000);
 }
 
 function randomIndexes(count) {
@@ -49,32 +80,26 @@ function randomIndexes(count) {
 function showMole() {
   clearHoles();
 
-  let doubleChance = Math.random() < 0.25;
-  let fakeChance = Math.random() < 0.25;
+  const doubleChance = Math.random() < 0.25;
+  const fakeChance = Math.random() < 0.25;
+
+  const moleCount = doubleChance ? 2 : 1;
+  const moleIndexes = randomIndexes(moleCount);
 
   if (doubleChance) {
     showEvent("🐹 더블 두더지!");
   }
 
-  const moleCount = doubleChance ? 2 : 1;
-  const indexes = randomIndexes(moleCount);
-
-  indexes.forEach(index => {
-    if (currentMode === "brain") {
-      const isRed = Math.random() < 0.6;
-      holes[index].classList.add(isRed ? "red" : "gray");
-    } else {
-      holes[index].classList.add("mole");
-    }
+  moleIndexes.forEach(index => {
+    holes[index].classList.add("mole");
   });
 
   if (fakeChance) {
-    const fakeIndex = randomIndexes(1)[0];
+    const emptyHoles = [...holes].filter(hole => !hole.classList.contains("mole"));
 
-    if (!holes[fakeIndex].classList.contains("mole") &&
-        !holes[fakeIndex].classList.contains("red") &&
-        !holes[fakeIndex].classList.contains("gray")) {
-      holes[fakeIndex].classList.add("fake");
+    if (emptyHoles.length > 0) {
+      const fakeHole = emptyHoles[Math.floor(Math.random() * emptyHoles.length)];
+      fakeHole.classList.add("fake");
       showEvent("💣 가짜 조심!");
     }
   }
@@ -83,18 +108,18 @@ function showMole() {
 function changeSpeedRandomly() {
   if (!playing) return;
 
-  const event = Math.random();
-
   clearInterval(moleTimer);
 
-  if (event < 0.33) {
+  const random = Math.random();
+
+  if (random < 0.33) {
     currentSpeed = 450;
     showEvent("⚡ 갑자기 빨라짐!");
-  } else if (event < 0.66) {
+  } else if (random < 0.66) {
     currentSpeed = 1200;
     showEvent("🐢 갑자기 느려짐!");
   } else {
-    currentSpeed = currentMode === "fast" ? 400 : 800;
+    currentSpeed = 800;
     showEvent("🎯 보통 속도!");
   }
 
@@ -102,8 +127,15 @@ function changeSpeedRandomly() {
 }
 
 function startCountdown() {
+  if (!playerName) {
+    alert("이름을 먼저 입력해줘용!");
+    return;
+  }
+
   let count = 3;
   countdown.textContent = count;
+
+  startBtn.disabled = true;
 
   const countTimer = setInterval(() => {
     count--;
@@ -111,8 +143,8 @@ function startCountdown() {
     if (count > 0) {
       countdown.textContent = count;
     } else {
-      countdown.textContent = "START!";
       clearInterval(countTimer);
+      countdown.textContent = "START!";
 
       setTimeout(() => {
         countdown.textContent = "";
@@ -124,35 +156,25 @@ function startCountdown() {
 
 function startGame() {
   score = 0;
-  time = Number(durationSelect.value);
-  currentMode = modeSelect.value;
+  time = 30;
   playing = true;
-
-  currentSpeed = currentMode === "fast" ? 400 : currentMode === "brain" ? 900 : 800;
+  currentSpeed = 800;
 
   scoreText.textContent = score;
   timeText.textContent = time;
-  startBtn.disabled = true;
-
-  if (currentMode === "normal") {
-    mission.textContent = "일반 모드: 두더지를 빠르게 눌러용!";
-  } else if (currentMode === "fast") {
-    mission.textContent = "빠른 모드: 속도 변화에 집중해용!";
-  } else {
-    mission.textContent = "치매 예방 모드: 빨간색만 눌러용! 회색은 감점!";
-  }
+  mission.textContent = "30초 동안 두더지를 눌러 점수를 올려용! 💣는 감점!";
 
   showMole();
 
   moleTimer = setInterval(showMole, currentSpeed);
 
+  speedTimer = setInterval(() => {
+    changeSpeedRandomly();
+  }, 7000);
+
   gameTimer = setInterval(() => {
     time--;
     timeText.textContent = time;
-
-    if (time % 7 === 0) {
-      changeSpeedRandomly();
-    }
 
     if (time <= 0) {
       endGame();
@@ -160,34 +182,33 @@ function startGame() {
   }, 1000);
 }
 
-function endGame() {
+async function saveScore() {
+  try {
+    await addDoc(collection(db, "rankings"), {
+      name: playerName,
+      score: score,
+      createdAt: serverTimestamp()
+    });
+  } catch (error) {
+    alert("점수 저장 실패! 인터넷/Firebase 설정 확인해줘용.");
+    console.error(error);
+  }
+}
+
+async function endGame() {
   playing = false;
+
   clearInterval(moleTimer);
   clearInterval(gameTimer);
+  clearInterval(speedTimer);
   clearHoles();
 
   startBtn.disabled = false;
   eventText.textContent = "";
 
-  if (score > bestScore) {
-    bestScore = score;
-    localStorage.setItem("moleBestScore", bestScore);
-    bestText.textContent = bestScore;
-  }
+  await saveScore();
 
-  let grade = "";
-
-  if (score < 10) {
-    grade = "연습이 필요해용 🙂";
-  } else if (score < 25) {
-    grade = "좋아용! 집중력 굿!";
-  } else if (score < 40) {
-    grade = "엄청 빠르다용 😎";
-  } else {
-    grade = "브레인 마스터 🏆";
-  }
-
-  alert("게임 종료!\n점수: " + score + "\n최고점수: " + bestScore + "\n" + grade);
+  alert("게임 종료!\n이름: " + playerName + "\n점수: " + score + "\n랭킹에 저장됐어용!");
 }
 
 holes.forEach(hole => {
@@ -195,29 +216,20 @@ holes.forEach(hole => {
     if (!playing) return;
 
     hole.classList.add("hit");
-    setTimeout(() => hole.classList.remove("hit"), 100);
+    setTimeout(() => {
+      hole.classList.remove("hit");
+    }, 100);
 
     if (hole.classList.contains("fake")) {
       score -= 2;
+      if (score < 0) score = 0;
       showEvent("💣 가짜! -2점");
       clearHoles();
-    } else if (currentMode === "brain") {
-      if (hole.classList.contains("red")) {
-        score++;
-        clearHoles();
-      } else if (hole.classList.contains("gray")) {
-        score--;
-        showEvent("⚪ 회색! -1점");
-        clearHoles();
-      }
-    } else {
-      if (hole.classList.contains("mole")) {
-        score += currentMode === "fast" ? 2 : 1;
-        hole.className = "hole";
-      }
+    } else if (hole.classList.contains("mole")) {
+      score++;
+      hole.className = "hole";
     }
 
-    if (score < 0) score = 0;
     scoreText.textContent = score;
 
     if (navigator.vibrate) {
@@ -226,4 +238,59 @@ holes.forEach(hole => {
   });
 });
 
+saveNameBtn.addEventListener("click", () => {
+  const name = playerNameInput.value.trim();
+
+  if (!name) {
+    alert("이름을 입력해줘용!");
+    return;
+  }
+
+  playerName = name;
+  localStorage.setItem("playerName", playerName);
+  currentPlayerText.textContent = playerName;
+
+  alert(playerName + " 참가 완료!");
+});
+
 startBtn.addEventListener("click", startCountdown);
+
+function renderRanking(players) {
+  top3.innerHTML = "";
+  rankingList.innerHTML = "";
+
+  const medals = ["🥇", "🥈", "🥉"];
+
+  players.slice(0, 3).forEach((player, index) => {
+    const card = document.createElement("div");
+    card.className = "rankCard rank" + (index + 1);
+    card.innerHTML = `
+      <div>${medals[index]} ${index + 1}등</div>
+      <div>${player.name}</div>
+      <div>${player.score}점</div>
+    `;
+    top3.appendChild(card);
+  });
+
+  players.forEach((player, index) => {
+    const li = document.createElement("li");
+    li.textContent = `${index + 1}등 - ${player.name} : ${player.score}점`;
+    rankingList.appendChild(li);
+  });
+}
+
+const rankingQuery = query(
+  collection(db, "rankings"),
+  orderBy("score", "desc"),
+  limit(130)
+);
+
+onSnapshot(rankingQuery, snapshot => {
+  const players = [];
+
+  snapshot.forEach(doc => {
+    players.push(doc.data());
+  });
+
+  renderRanking(players);
+});
