@@ -7,7 +7,9 @@ import {
   orderBy,
   limit,
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
+  getDocs,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -36,6 +38,7 @@ const saveNameBtn = document.getElementById("saveNameBtn");
 const currentPlayerText = document.getElementById("currentPlayer");
 const top3 = document.getElementById("top3");
 const rankingList = document.getElementById("rankingList");
+const resetRankBtn = document.getElementById("resetRankBtn");
 
 let score = 0;
 let time = 30;
@@ -293,4 +296,34 @@ onSnapshot(rankingQuery, snapshot => {
   });
 
   renderRanking(players);
+});
+
+resetRankBtn.addEventListener("click", async () => {
+  const password = prompt("랭킹 초기화 비밀번호를 입력해줘용!");
+
+  if (password !== "1234") {
+    alert("비밀번호가 틀렸어용!");
+    return;
+  }
+
+  const ok = confirm("정말 랭킹을 전부 초기화할까요?");
+
+  if (!ok) return;
+
+  try {
+    const snapshot = await getDocs(collection(db, "rankings"));
+
+    const deleteList = [];
+
+    snapshot.forEach(docItem => {
+      deleteList.push(deleteDoc(docItem.ref));
+    });
+
+    await Promise.all(deleteList);
+
+    alert("랭킹 초기화 완료!");
+  } catch (error) {
+    alert("랭킹 초기화 실패! Firebase 설정을 확인해줘용.");
+    console.error(error);
+  }
 });
